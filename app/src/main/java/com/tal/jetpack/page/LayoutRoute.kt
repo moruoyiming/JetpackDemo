@@ -1,7 +1,9 @@
 package com.tal.jetpack.page
 
-import android.inputmethodservice.Keyboard.Row
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,16 +11,28 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Button
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ListItem
+import androidx.compose.material.ModalBottomSheetLayout
+import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,11 +44,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role.Companion.Button
 import androidx.compose.ui.unit.dp
+import com.tal.jetpack.R
+import kotlinx.coroutines.launch
 
 @Composable
 fun LayoutRoute() {
@@ -46,6 +67,9 @@ fun LayoutRoute() {
             BoxDemo()
             RowDemo()
             Filters()
+            SurfaceDemo()
+            SpacerDemo()
+            ModalBottomSheetLayoutDemo()
         }
     }
 }
@@ -133,4 +157,122 @@ fun Filters() {
             )
         }
     }
+}
+
+@Composable
+fun SurfaceDemo() {
+    Surface(
+        shape = RoundedCornerShape(8.dp),
+        shadowElevation = 2.dp,
+        modifier = Modifier
+            .width(300.dp)
+            .height(100.dp)
+    ) {
+        Row(modifier = Modifier.clickable { }) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_launcher_background),
+                contentDescription = stringResource(R.string.description),
+                modifier = Modifier.size(100.dp),
+                contentScale = ContentScale.Crop
+            )
+            Spacer(Modifier.padding(horizontal = 12.dp))
+            Column(
+                modifier = Modifier.fillMaxHeight(),
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Liratie",
+                    style = MaterialTheme.typography.headlineLarge
+                )
+                Spacer(Modifier.padding(vertical = 8.dp))
+                Text(
+                    text = "礼谙"
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun SpacerDemo() {
+    Row {
+        Box(Modifier.size(100.dp).background(Color.Red))
+        Spacer(Modifier.width(20.dp))
+        Box(Modifier.size(100.dp).background(Color.Magenta))
+        Spacer(Modifier.weight(1f))
+        Box(Modifier.size(100.dp).background(Color.Black))
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun ModalBottomSheetLayoutDemo(){
+    val state = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
+    val scope = rememberCoroutineScope()
+    Column {
+        ModalBottomSheetLayout(
+            sheetState = state,
+            sheetContent = {
+                Column{
+                    ListItem(
+                        text = { Text("选择分享到哪里吧~") }
+                    )
+
+                    ListItem(
+                        text = { Text("github") },
+                        icon = {
+                            Surface(
+                                shape = CircleShape,
+                                color = Color(0xFF181717)
+                            ) {
+                                Icon(
+                                    painterResource(R.drawable.ic_launcher_background),
+                                    null,
+                                    tint = Color.White,
+                                    modifier = Modifier.padding(4.dp)
+                                )
+                            }
+                        },
+                        modifier = Modifier.clickable {  }
+                    )
+
+                    ListItem(
+                        text = { Text("微信") },
+                        icon = {
+                            Surface(
+                                shape = CircleShape,
+                                color = Color(0xFF07C160)
+                            ) {
+                                Icon(
+                                    painterResource(R.drawable.ic_launcher_background),
+                                    null,
+                                    tint = Color.White,
+                                    modifier = Modifier.padding(4.dp)
+                                )
+                            }
+                        },
+                        modifier = Modifier.clickable {  }
+                    )
+                }
+            }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Button(
+                    onClick = { scope.launch { state.show() } }
+                ) {
+                    Text("点我展开")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PageDemo(){
+
 }
