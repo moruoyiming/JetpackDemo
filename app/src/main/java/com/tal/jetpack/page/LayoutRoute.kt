@@ -1,6 +1,5 @@
 package com.tal.jetpack.page
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,8 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
@@ -32,6 +30,9 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -46,15 +47,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role.Companion.Button
 import androidx.compose.ui.unit.dp
 import com.tal.jetpack.R
+import com.tal.jetpack.ui.widget.MyOwnColumn
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -69,7 +72,9 @@ fun LayoutRoute() {
             Filters()
             SurfaceDemo()
             SpacerDemo()
-            ModalBottomSheetLayoutDemo()
+            CustomDemo()
+//            ModalBottomSheetLayoutDemo()
+            SwipeToRefreshTest()
         }
     }
 }
@@ -196,24 +201,36 @@ fun SurfaceDemo() {
 @Composable
 fun SpacerDemo() {
     Row {
-        Box(Modifier.size(100.dp).background(Color.Red))
+        Box(
+            Modifier
+                .size(100.dp)
+                .background(Color.Red)
+        )
         Spacer(Modifier.width(20.dp))
-        Box(Modifier.size(100.dp).background(Color.Magenta))
+        Box(
+            Modifier
+                .size(100.dp)
+                .background(Color.Magenta)
+        )
         Spacer(Modifier.weight(1f))
-        Box(Modifier.size(100.dp).background(Color.Black))
+        Box(
+            Modifier
+                .size(100.dp)
+                .background(Color.Black)
+        )
     }
 }
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun ModalBottomSheetLayoutDemo(){
+fun ModalBottomSheetLayoutDemo() {
     val state = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
     val scope = rememberCoroutineScope()
     Column {
         ModalBottomSheetLayout(
             sheetState = state,
             sheetContent = {
-                Column{
+                Column {
                     ListItem(
                         text = { Text("选择分享到哪里吧~") }
                     )
@@ -233,7 +250,7 @@ fun ModalBottomSheetLayoutDemo(){
                                 )
                             }
                         },
-                        modifier = Modifier.clickable {  }
+                        modifier = Modifier.clickable { }
                     )
 
                     ListItem(
@@ -251,7 +268,7 @@ fun ModalBottomSheetLayoutDemo(){
                                 )
                             }
                         },
-                        modifier = Modifier.clickable {  }
+                        modifier = Modifier.clickable { }
                     )
                 }
             }
@@ -272,7 +289,45 @@ fun ModalBottomSheetLayoutDemo(){
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun PageDemo(){
+fun SwipeToRefreshTest(
+    modifier: Modifier = Modifier
+) {
+    val list = remember {
+        List(4) { "Item $it" }.toMutableStateList()
+    }
+    var refreshing by remember {
+        mutableStateOf(false)
+    }
+    // 用协程模拟一个耗时加载
+    val scope = rememberCoroutineScope()
+    val state = rememberPullRefreshState(refreshing = refreshing, onRefresh = {
+        scope.launch {
+            refreshing = true
+            delay(1000) // 模拟数据加载
+            list += "Item ${list.size + 1}"
+            refreshing = false
+        }
+    })
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .pullRefresh(state)
+    ) {
+        LazyColumn(Modifier.fillMaxWidth()) {
+            // ...
+        }
+        PullRefreshIndicator(refreshing, state, Modifier.align(Alignment.TopCenter))
+    }
+}
 
+@Composable
+fun CustomDemo(modifier: Modifier = Modifier) {
+    MyOwnColumn(modifier.padding(8.dp)) {
+        Text("MyOwnColumn")
+        Text("places items")
+        Text("vertically.")
+        Text("We've done it by hand!")
+    }
 }

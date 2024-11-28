@@ -2,10 +2,12 @@ package com.tal.jetpack.page
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -18,6 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Done
@@ -37,10 +40,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -52,6 +58,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.tal.jetpack.R
 import com.tal.jetpack.ui.theme.JetpackDemoTheme
@@ -59,10 +66,12 @@ import com.tal.jetpack.ui.widget.ButtonState
 import com.tal.jetpack.ui.widget.MyIconButton
 
 @Composable
-fun WidgetRoute(){
+fun WidgetRoute() {
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-        Column(horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(45.dp)) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(45.dp)
+        ) {
             Greeting(
                 name = "Android", modifier = Modifier.padding(10.dp)
             )
@@ -76,6 +85,7 @@ fun WidgetRoute(){
             CustomIconButtonDemo()
             ImageDemo()
             SlideDemo()
+            CompositionLocalDemo()
         }
     }
 }
@@ -92,12 +102,12 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 
 @Composable
 fun TextDemo() {
-    Text(stringResource(id = R.string.content))
+    Text(stringResource(id = R.string.content), color = MaterialTheme.colors.primary)
 }
 
 @Composable
 fun TextFieldDemo() {
-    var text by remember{ mutableStateOf("") }
+    var text by remember { mutableStateOf("") }
     TextField(
         value = text,
         onValueChange = {
@@ -239,8 +249,8 @@ fun ImageDemo() {
 }
 
 @Composable
-fun SlideDemo(){
-    var progress by remember{ mutableStateOf(0f) }
+fun SlideDemo() {
+    var progress by remember { mutableStateOf(0f) }
     Slider(
         value = progress,
         colors = SliderDefaults.colors(
@@ -253,6 +263,68 @@ fun SlideDemo(){
     )
 }
 
+var isStatic = false
+var compositionLocalName = ""
+val currentLocalColor = if (isStatic) {
+    compositionLocalName = "StaticCompositionLocal 场景"
+    staticCompositionLocalOf { Color.Black }
+} else {
+    compositionLocalName = "DynamicCompositionLocal 场景"
+    compositionLocalOf { Color.Black }
+}
+
+var recomposeFlag = "Init"
+
+@Preview
+@Composable
+fun CompositionLocalDemo(isStatic: Boolean = false) {
+    var color by remember { mutableStateOf(Color.Green) }
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(text = "${compositionLocalName}")
+            Spacer(Modifier.height(20.dp))
+            CompositionLocalProvider(
+                currentLocalColor provides color
+            ) {
+                TaggedBox("Wrapper: ${recomposeFlag}", 400.dp, Color.Red) {
+                    TaggedBox("Middle: ${recomposeFlag}", 300.dp, currentLocalColor.current) {
+                        TaggedBox("Inner: ${recomposeFlag}", 200.dp, Color.Yellow)
+                    }
+                }
+            }
+            Spacer(Modifier.height(20.dp))
+            Button(
+                onClick = {
+                    color = Color.Blue
+                }
+            ) {
+                Text(text = "Change Theme")
+            }
+        }
+    }
+    recomposeFlag = "Recompose"
+}
+
+@Composable
+fun TaggedBox(tag: String, size: Dp, background: Color, content: @Composable () -> Unit = {}) {
+    Column(
+        modifier = Modifier
+            .size(size)
+            .background(background),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(text = tag)
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            content()
+        }
+    }
+}
 
 @Preview(showBackground = true)
 @Composable
